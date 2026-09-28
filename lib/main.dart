@@ -1,48 +1,81 @@
 import 'package:flutter/material.dart';
- 
+import 'widgets/header_banner.dart';
+import 'widgets/profile_card.dart';
+
 void main() => runApp(const MyApp());
- 
-class MyApp extends StatelessWidget {
+
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
- 
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  // Quản lý trạng thái theme hiện tại (Sáng/Tối)
+  ThemeMode _themeMode = ThemeMode.light;
+
+  // Hàm callback để thay đổi theme
+  void toggleTheme() {
+    setState(() {
+      _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    const seedColor = Color(0xFF0468D7);
+
     return MaterialApp(
-      title: 'F2_231A010603', // TODO: thay bằng MSSV của bạn
+      title: 'F2_231A010603', 
       debugShowCheckedModeBanner: false,
+      // Giao diện sáng
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0468D7)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: seedColor, 
+          brightness: Brightness.light
+        ),
         inputDecorationTheme: const InputDecorationTheme(border: OutlineInputBorder()),
       ),
-      home: const LoginPage(),
+      // Giao diện tối (NC1)
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: seedColor, 
+          brightness: Brightness.dark
+        ),
+        inputDecorationTheme: const InputDecorationTheme(border: OutlineInputBorder()),
+      ),
+      themeMode: _themeMode,
+      // Truyền hàm callback xuống LoginPage
+      home: LoginPage(onToggleTheme: toggleTheme),
     );
   }
 }
- 
+
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
- 
+  final VoidCallback onToggleTheme;
+  const LoginPage({super.key, required this.onToggleTheme});
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
- 
+
 class _LoginPageState extends State<LoginPage> {
   bool _ghiNho = false;
   bool _anMatKhau = true;
- 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        // SingleChildScrollView: tránh lỗi tràn khi bàn phím hiện lên
         child: SingleChildScrollView(
           child: Column(
             children: [
-              const HeaderBanner(),
+              // Sử dụng widget đã tách, truyền hàm callback (NC2)
+              HeaderBanner(onToggleTheme: widget.onToggleTheme),
               const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                // LayoutBuilder: biết được chiều rộng thực tế để chọn bố cục
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final manHinhRong = constraints.maxWidth >= 700;
@@ -73,11 +106,11 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
- 
+
   Widget _buildForm(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
- 
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -114,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
               onChanged: (v) => setState(() => _ghiNho = v ?? false),
             ),
             const Text('Ghi nhớ đăng nhập'),
-            const Spacer(), // đẩy nút sang phải
+            const Spacer(),
             TextButton(onPressed: () {}, child: const Text('Quên mật khẩu?')),
           ],
         ),
@@ -156,150 +189,6 @@ class _LoginPageState extends State<LoginPage> {
           ],
         ),
       ],
-    );
-  }
-}
- 
-/// Ảnh bìa có nền chuyển màu và ảnh đại diện chồng lên — dùng Stack + Positioned.
-class HeaderBanner extends StatelessWidget {
-  const HeaderBanner({super.key});
- 
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
- 
-    return SizedBox(
-      height: 196,
-      child: Stack(
-        children: [
-          Container(
-            height: 150,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [scheme.primary, scheme.tertiary],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-            ),
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'INT4211 – LẬP TRÌNH DI ĐỘNG',
-                  style: TextStyle(color: scheme.onPrimary, fontSize: 12, letterSpacing: 1.5),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Cổng thực hành LTDD',
-                  style: TextStyle(
-                    color: scheme.onPrimary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Center(
-              child: CircleAvatar(
-                radius: 46,
-                backgroundColor: scheme.surface,
-                child: CircleAvatar(
-                  radius: 42,
-                  backgroundColor: scheme.primaryContainer,
-                  child: Text(
-                    'TĐ',
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: scheme.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
- 
-/// Thẻ thông tin sinh viên — Card + ListTile + Row/Expanded.
-class ProfileCard extends StatelessWidget {
-  const ProfileCard({super.key});
- 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const ListTile(
-              leading: CircleAvatar(child: Text('T')),
-              title: Text('Trần Quốc Đạt'),
-              subtitle: Text('MSSV: 231A010603'),
-            ),
-            const Divider(height: 1),
-            const ListTile(
-              leading: Icon(Icons.class_outlined),
-              title: Text('Lớp'),
-              subtitle: Text('CNTT – LTDD'),
-            ),
-            const ListTile(
-              leading: Icon(Icons.mail_outline),
-              title: Text('Email'),
-              subtitle: Text('Dat231A010603@vhu.edu.vn'),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: Row(
-                children: const [
-                  Expanded(child: _StatBox(label: 'Lab đã nộp', value: '1')),
-                  SizedBox(width: 12),
-                  Expanded(child: _StatBox(label: 'Điểm TB lab', value: '8.5')),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
- 
-class _StatBox extends StatelessWidget {
-  const _StatBox({required this.label, required this.value});
- 
-  final String label;
-  final String value;
- 
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: scheme.primary),
-          ),
-          Text(label, style: TextStyle(fontSize: 12, color: scheme.outline)),
-        ],
-      ),
     );
   }
 }
